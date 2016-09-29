@@ -1,0 +1,12 @@
+Package: RobustTail
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1.0
+Author: Clementine Mottet
+Maintainer: Who to complain to <cmottet@bu.edu>
+Description: More about what it does (maybe more than one line)
+License: MIT
+LazyData: TRUE
+RoxygenNote: 5.0.1.9000
+Imports:
+  GenSA
