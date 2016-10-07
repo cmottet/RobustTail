@@ -1,12 +1,24 @@
 Package: RobustTail
 Type: Package
-Title: What the Package Does (Title Case)
+Title: RobustTail
 Version: 0.1.0
 Author: Clementine Mottet
-Maintainer: Who to complain to <cmottet@bu.edu>
-Description: More about what it does (maybe more than one line)
+Maintainer: Clementine Mottet <cmottet@bu.edu>
+Description: This package is a companion to the paper by Lam and Mottet
+  "Tail Analysis without Parametric Models: A Worst-case Perspective". It is designed to solve
+  programs (1) and (EC.19) by focusing on the respective equivalent optimization programs (5) and (EC.19), when
+  their feasbile region are restricted to  distribution functions with at most two point supports.
 License: MIT
 LazyData: TRUE
 RoxygenNote: 5.0.1.9000
 Imports:
-  GenSA
+  GenSA,
+  ks,
+  sROC,
+  bootstrap,
+  dplyr
+Suggests:
+  ggplot2,
+  gtools
+
+

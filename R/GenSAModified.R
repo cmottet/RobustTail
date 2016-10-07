@@ -1,194 +1,93 @@
-#' Title
+#' GenSAmodified
 #'
-#' @param par
-#' @param fn
-#' @param lower
-#' @param upper
-#' @param control
-#' @param ...
+#' This function is an extension of the function GenSA defined in the package GenSA available on CRAN.
+#' The only difference with the existing version is that \emph{GenSAmodified} allows the user to pass
+#' values for the lower bounds and upper bounds of \emph{par} that are equal. Though this is a trivial
+#' scenario in which case the optimal solution should be lower = upper, the current version of GenSA crashes.
 #'
-#' @return
-#'
+#' @inheritParams GenSA::GenSA
+#' @importFrom GenSA GenSA
 #' @examples
+#'
+#' # Test GenSAmodified in the univariate case
+#' fn1 <- function(x) x
+#' bound <- RobustTail:::GenSAmodified(fn = fn1,par = 1,lower = 1,upper = 1)
+#' bound
+#' GenSA::GenSA(fn = fn1,par = 1,lower = 1,upper = 1) # This crashes
+#'
+#' # Test GenSAmodified in the bivariate case with one lower bound equal to the upper bound
+#' fn2 <- function(x) x[1] + x[2]
+#' bound <- RobustTail:::GenSAmodified(fn = fn2,par = c(1,2),lower = c(1,1),upper = c(1,3))
+#' bound$par
+#' bound$value
+#'
+#' GenSA::GenSA(fn = fn2,par = c(1,2),lower = c(1,1),upper = c(1,3))# This crashes
+#'
+#' # Test GenSAmodified in the bivariate case with both lower bound are equal to the upper bounds
+#' bound <- RobustTail:::GenSAmodified(fn = fn2,par = c(1,1),lower = c(1,1),upper = c(1,1))
+#' bound$par
+#' bound$value
+#'
+#' GenSA::GenSA(fn = fn2,par = c(1,1),lower = c(1,1),upper = c(1,1)) # This crashes
+#'
+#' # Let's check that when the lower bounds are strictly smaller than the upper bounds,
+#' # all goes well
+#' outGenSAmodified <- RobustTail:::GenSAmodified(fn = fn2,par = c(1,2),lower = c(1,2),upper = c(2,3))
+#' outGenSA <- GenSA::GenSA(fn = fn2,par = c(1,2),lower = c(1,2),upper = c(2,3))
+#'
+#' # Check that they have the same optimal solution
+#' all(outGenSAmodified$par == outGenSA$par)
+#'
+#' # Check that they have the same optimal objective value
+#' outGenSAmodified$value == outGenSA$value
+
 GenSAmodified <- function (par = NULL, fn, lower, upper, control = list(), ...)
 {
-
-  jc = NULL
+  # Check necessary conditions to run GenSAmodified
   if (!is.function(fn) || is.null(fn)) {
     stop("'fn' has to be a R function.")
   }
-  genSA.env <- new.env(hash = TRUE, parent = emptyenv())
-  fn1 <- function(par) {
-    ret <- fn(par, ...)
-    return(ret)
-  }
-  if (!is.null(jc)) {
-    if (!is.function(jc)) {
-      stop("'jc' has to be a R function.")
-    }
-    jc1 <- function(par, ...) {
-      return(jc(par, ...))
-    }
-  }
-  else {
-    jc1 <- NULL
-  }
-  LSE <- function(theta, ui, ci, mu, xlow, xhigh, count) {
-    assign("xlow", xlow, envir = genSA.env)
-    assign("xhigh", xhigh, envir = genSA.env)
-    assign("count", count, envir = genSA.env)
-    res <- constrOptim(theta = theta, f = fn2, ui = ui, ci = ci,
-                       mu = mu, grad = NULL, outer.eps = 1e-06, )
-    counts <- get("count", genSA.env)
-    ret <- list(value = res$value, convergence = res$convergence,
-                par = res$par, counts = as.integer(counts))
-    return(ret)
-  }
-  fn2 <- function(par, ...) {
-    if (!is.null(jc1)) {
-      in.constraint <- jc1(par, ...)
-      if (!in.constraint) {
-        return(1e+10)
-      }
-    }
-    else {
-      penalty <- 0
-      xlow <- get("xlow", genSA.env)
-      xhigh <- get("xhigh", genSA.env)
-      count <- get("count", genSA.env)
-      counts <- count
-      for (i in (length(lower))) {
-        if (par[i] >= xlow[i] && par[i] <= xhigh[i]) {
-          delta.energy <- 0
-        }
-        else {
-          if (par[i] < xlow[i]) {
-            delta.energy <- abs(par[i] - xlow[i]) * 1e+11
-          }
-          if (par[i] > xhigh[i]) {
-            delta.energy <- abs(par[i] - xhigh[i]) *
-              1e+11
-          }
-        }
-        penalty <- penalty + delta.energy
-      }
-      if (penalty > 1e-10) {
-        to.return <- penalty + 1e+10
-        return(to.return)
-      }
-      else {
-        to.return <- fn1(par, ...)
-        counts <- counts + 1
-        to.return <- to.return + penalty
-        if (is.nan(to.return)) {
-          to.return = count * 1e+05 + 1e+10
-          assign("count", counts, envir = genSA.env)
-          return(to.return)
-        }
-        else {
-          assign("count", counts, envir = genSA.env)
-          return(to.return)
-        }
-      }
-    }
-  }
-  assign("LSE", LSE, envir = genSA.env)
-  con <- list(maxit = 5000, threshold.stop = NULL, temperature = 5230,
-              visiting.param = 2.62, acceptance.param = -5, max.time = NULL,
-              nb.stop.improvement = 1e+06, smooth = TRUE, max.call = 1e+07,
-              simple.function = FALSE, trace.fn = NULL, verbose = FALSE,
-              trace.mat = TRUE)
-  con$high.dim = TRUE
-  con$markov.length = 2 * length(lower)
-  con$tem.restart = 0.1
-  nmsC <- names(con)
-  con[(namc <- names(control))] <- control
-  if (length(noNms <- namc[!namc %in% nmsC]))
-    warning("unknown names in control: ", paste(noNms, collapse = ", "))
-  if (!exists("par") && (length(lower) == 0 || length(upper) ==
-                         0)) {
-    stop("There is no par or no lower/upper bounds defined")
-  }
+
   if (length(lower) != length(upper)) {
     stop("Lower and upper bounds vector do not have the same length")
   }
-  cmp <- unique(lower <= upper)
-  if (length(cmp) != 1 || !cmp) {
-    stop("Lower and upper bounds are not consistent (lower >= upper)")
-  }
-  if (!is.null(par)) {
-    if (length(lower) == 0 || length(lower) != length(par)) {
-      stop("Lower bounds vector size does not match with par size, using -Inf")
+
+  # If all lower are different from the upper,
+  # run the usual GenSA algorithm
+  if (all(lower != upper)){
+    output <- GenSA::GenSA(par = par, fn = fn, lower = lower, upper = upper, ...)
+  }else {
+    index <- which(lower == upper)
+    newfn <- function(newx  = NULL) {
+      x <- rep(NA,length(lower))
+      x[index] <- lower[index]
+      x[-index] <- newx
+      output <- fn(x)
+      return(output)
     }
-    if (length(upper) == 0 || length(upper) != length(par)) {
-      stop("Upper bounds vector size does not match with par size, using -Inf")
+
+    if (length(index) == length(lower)) {
+      output <- list(value = newfn(), par = lower)
+      return(output)
     }
-    if (any(is.na(par)) || any(is.nan(par)) || any(is.infinite(par))) {
-      stop("par contains NA, NAN or Inf")
+
+    newlower <- lower[-index]
+    newupper <- upper[-index]
+    newpar <- par[-index]
+
+    output <- GenSA::GenSA(par = newpar, fn = newfn, lower = newlower, upper = newupper, ...)
+
+    # The output vector par of GenSA will be of the same dimension as the newlower bound
+    # we need to include the value of lowerbound that was discarded in "par"
+    if (is.list(output)){
+      newpar <- rep(NA,length(lower))
+      newpar[index] <- lower[index]
+      newpar[-index] <- output$par
+
+      output$par <- newpar
     }
+
   }
-  else {
-    if (con$verbose) {
-      cat("Initializing par with random data inside bounds\n")
-    }
-    par <- vector()
-    par <- lower + runif(length(lower)) * (upper - lower)
-  }
-  ret <- list()
-  instance <- .Call("createInstance", PACKAGE = "GenSA")
-  if (is.null(instance)) {
-    stop("Can not create GenSACaller instance!")
-  }
-  res <- .Call("execute", par, lower, upper, fn1, jc1, con,
-               genSA.env, instance, PACKAGE = "GenSA")
-  if (is.null(res)) {
-    stop("Can not call execute function on instance")
-  }
-  res <- .Call("getREnergy", instance, PACKAGE = "GenSA")
-  if (is.null(res)) {
-    message("Can not get minimum function value")
-  }
-  else {
-    ret$value <- res
-  }
-  res <- .Call("getRXMiniVector", instance, PACKAGE = "GenSA")
-  if (is.null(res)) {
-    message("Can not get calculated par values")
-  }
-  else {
-    ret$par <- res
-  }
-  nr <- .Call("getRTraceMatSize", instance, PACKAGE = "GenSA")
-  if (nr > 0) {
-    ret$trace.mat <- matrix(NA, nr, 4)
-    ret$trace.mat[, 1] <- as.integer(.Call("getRTraceMat",
-                                           instance, "nSteps", PACKAGE = "GenSA"))
-    ret$trace.mat[, 2] <- as.numeric(.Call("getRTraceMat",
-                                           instance, "temperature", PACKAGE = "GenSA"))
-    ret$trace.mat[, 3] <- as.numeric(.Call("getRTraceMat",
-                                           instance, "currentEnergy", PACKAGE = "GenSA"))
-    ret$trace.mat[, 4] <- as.numeric(.Call("getRTraceMat",
-                                           instance, "minEnergy", PACKAGE = "GenSA"))
-    colnames(ret$trace.mat) <- c("nb.steps", "temperature",
-                                 "function.value", "current.minimum")
-  }
-  if (!is.null(con$trace.fn)) {
-    if (con$verbose) {
-      cat(paste("Writing trace.mat data into file:", con$trace.fn,
-                "\n"))
-    }
-    write.table(ret$trace.mat, file = con$trace.fn, col.names = TRUE,
-                row.names = FALSE)
-    ret$trace.mat <- paste("trace.mat is written in file:",
-                           con$trace.fn)
-  }
-  res <- .Call("getRNbFuncCall", instance, PACKAGE = "GenSA")
-  if (is.null(res)) {
-    message("Can not get number of function calls")
-  }
-  else {
-    ret$counts <- res
-  }
-  .Call("releaseInstance", instance, PACKAGE = "GenSA")
-  ret
+
+  return(output)
 }

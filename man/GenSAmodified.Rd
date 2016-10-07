@@ -2,14 +2,113 @@
 % Please edit documentation in R/GenSAModified.R
 \name{GenSAmodified}
 \alias{GenSAmodified}
-\title{Title}
+\title{GenSAmodified}
 \usage{
 GenSAmodified(par = NULL, fn, lower, upper, control = list(), ...)
 }
 \arguments{
-\item{...}{}
+\item{par}{
+        Vector. Initial values for the components to be optimized. Default is \code{NULL}, in which case, default values will be generated automatically.
+    }
+
+\item{fn}{
+        A function to be minimized, with first argument the vector of parameters over which minimization is to take place. It should return
+            a scalar result.
+    }
+
+\item{lower}{
+        Vector with length of \code{par}. Lower bounds for components.
+    }
+
+\item{upper}{
+        Vector with length of \code{par}. Upper bounds for components.
+    }
+
+\item{control}{
+        The argument is a list that can be used to control the behavior of the algorithm:
+            \describe{
+                \item{\code{maxit}}{
+                    Integer. Maximum number of iterations of the algorithm. 
+                }
+                \item{\code{threshold.stop}}{
+                    Numeric. The program will stop when the expected objective function value \code{threshold.stop} is reached. Default value is \code{NULL}
+                }
+                \item{\code{nb.stop.improvement}}{
+                    Integer. The program will stop when there is no any improvement in \code{nb.stop.improvement} steps. 
+                }
+                \item{\code{smooth}}{
+                    Logical.\code{TRUE} when the objective function is smooth, or differentiable almost everywhere in the
+                        region of \code{par}, \code{FALSE} otherwise. Default value is \code{TRUE}.
+                }
+                \item{\code{max.call}}{
+                    Integer. Maximum number of call of the objective function. Default is set to 1e7.
+                }
+                \item{\code{max.time}}{
+                    Numeric. Maximum running time in seconds.
+                }
+                \item{\code{temperature}}{
+                    Numeric. Initial value for temperature.
+                }
+                \item{\code{visiting.param}}{
+                    Numeric. Parameter for visiting distribution.
+                }
+                \item{\code{acceptance.param}}{
+                    Numeric. Parameter for acceptance distribution.
+                }
+                \item{\code{verbose}}{
+                    Logical. \code{TRUE} means that messages from the algorithm are shown. Default is \code{FALSE}.
+                }
+                \item{\code{simple.function}}{
+                    Logical. \code{FALSE} means that the objective function has only a few local minima. Default is \code{FALSE} which means that the objective function is complicated with many local minima.
+                }
+                \item{\code{trace.mat}}{
+                    Logical. Default is \code{TRUE} which means that the trace matrix will be available in the returned value of \code{GenSA} call.
+                }
+            }
+    }
+
+\item{...}{
+        allows the user to pass additional arguments to the function \code{fn}.
+    }
 }
 \description{
-Title
+This function is an extension of the function GenSA defined in the package GenSA available on CRAN.
+The only difference with the existing version is that \emph{GenSAmodified} allows the user to pass
+values for the lower bounds and upper bounds of \emph{par} that are equal. Though this is a trivial
+scenario in which case the optimal solution should be lower = upper, the current version of GenSA crashes.
+}
+\examples{
+
+# Test GenSAmodified in the univariate case
+fn1 <- function(x) x
+bound <- RobustTail:::GenSAmodified(fn = fn1,par = 1,lower = 1,upper = 1)
+bound
+GenSA::GenSA(fn = fn1,par = 1,lower = 1,upper = 1) # This crashes
+
+# Test GenSAmodified in the bivariate case with one lower bound equal to the upper bound
+fn2 <- function(x) x[1] + x[2]
+bound <- RobustTail:::GenSAmodified(fn = fn2,par = c(1,2),lower = c(1,1),upper = c(1,3))
+bound$par
+bound$value
+
+GenSA::GenSA(fn = fn2,par = c(1,2),lower = c(1,1),upper = c(1,3))# This crashes
+
+# Test GenSAmodified in the bivariate case with both lower bound are equal to the upper bounds
+bound <- RobustTail:::GenSAmodified(fn = fn2,par = c(1,1),lower = c(1,1),upper = c(1,1))
+bound$par
+bound$value
+
+GenSA::GenSA(fn = fn2,par = c(1,1),lower = c(1,1),upper = c(1,1)) # This crashes
+
+# Let's check that when the lower bounds are strictly smaller than the upper bounds,
+# all goes well
+outGenSAmodified <- RobustTail:::GenSAmodified(fn = fn2,par = c(1,2),lower = c(1,2),upper = c(2,3))
+outGenSA <- GenSA::GenSA(fn = fn2,par = c(1,2),lower = c(1,2),upper = c(2,3))
+
+# Check that they have the same optimal solution
+all(outGenSAmodified$par == outGenSA$par)
+
+# Check that they have the same optimal objective value
+outGenSAmodified$value == outGenSA$value
 }
 
