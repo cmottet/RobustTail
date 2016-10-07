@@ -4,7 +4,7 @@
 \alias{computeBound}
 \title{computeBound}
 \usage{
-computeBound(H, mu, sigma, lambda, scale = 1, direction = c("max", "min"))
+computeBound(H, mu, sigma, lambda, nu = 1, direction = c("max", "min"))
 }
 \arguments{
 \item{H}{: the function defined in the objective value of program  (5) and (EC.19)}
@@ -16,11 +16,11 @@ If both mu and sigma are scalars, then computeBound solves program (5), otherwis
 
 \item{lambda}{:  a scalar giving the limit value of the ratio H(x)/x^2 when x goes to infinity}
 
-\item{scale}{: a scalar value by which we scale the optimal objective value. For instance, one can set scale := nu, where
-nu is as defined in program (5) and  (EC.19)}
-
 \item{direction}{: a string either "\emph{min}" or "\emph{max}" identifying the type of wether program (5)
 should be a min or a max program. Default is "max"}
+
+\item{scale}{: a scalar value by which we scale the optimal objective value. For instance, one can set scale := nu, where
+nu is as defined in program (5) and  (EC.19)}
 }
 \value{
 a list containing the optimal objective value \emph{bound} and distribution function \emph{P} of program  (EC.19) or program (5). In particular, P is a list

@@ -253,7 +253,7 @@ computeBoundInt <- function(H,mu, sigma, lambda, direction = c("max", "min"))
 #'
 #' runFunc <- function(b){
 #' H <- function(x) 1/2*(x - max(b-a,0) )^2*( max(b-a,0) <= x)
-#' bound <- RobustTail::computeBound(H,mu,sigma,lambda,scale = nu)$bound
+#' bound <- RobustTail::computeBound(H,mu,sigma,lambda,nu)$bound
 #' output <- data.frame(b = b, bound = bound)
 #' }
 #'
@@ -270,7 +270,7 @@ computeBoundInt <- function(H,mu, sigma, lambda, direction = c("max", "min"))
 #'
 #'
 #'
-computeBound = function(H, mu, sigma, lambda,scale = 1, direction = c("max", "min"))
+computeBound = function(H, mu, sigma, lambda, nu = 1, direction = c("max", "min"))
 {
   direction <- match.arg(direction)
 
@@ -281,12 +281,16 @@ computeBound = function(H, mu, sigma, lambda,scale = 1, direction = c("max", "mi
   if (Nmu > 2 | Nmu < 1) return("mu must be either a scalar or a vector of length 2.")
   if (Nsigma > 2 | Nsigma < 1) return("sigma must be either a  scalar or vector of length 2.")
 
+  # Check that nu >= 0
+  scale <- if (direction == "min") 1 else -1
+  if (nu < 0) return(list(bound = scale*Inf, P = NULL))
+
   # Compute bound
   if (Nmu == 1 & Nsigma == 1) output <- computeBoundVal(H, mu, sigma, lambda, direction)
   if (Nmu == 2 & Nsigma == 2) output <- computeBoundInt(H, mu, sigma, lambda, direction)
   if (Nmu == 1 & Nsigma == 2) output <- computeBoundInt(H, rep(mu,2), sigma, lambda, direction)
   if (Nmu == 2 & Nsigma == 1) output <- computeBoundInt(H, mu, rep(sigma,2), lambda, direction)
 
-  output$bound <- scale*output$bound
+  output$bound <- nu*output$bound
   return(output)
 }
