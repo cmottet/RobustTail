@@ -1,13 +1,13 @@
-#' getDistribution
+#' Returns a 2-point support feasible distribution function for program (5)
 #'
-#' Returns a distribution function with two point masses
-#' and supports (p1, p2, x1,x2) satisfying the three equations p1 + p2 = 1,  p1x1 + p2x2 = mu,
+#' Returns a 2-point support feasible distribution function for program (5), i.e. a distribution function with
+#' two point masses (p1,p2) and supports (x1,x2) satisfying the three equations p1 + p2 = 1,  p1x1 + p2x2 = mu,
 #' and m1x1^2 + p2x2^2 = sigma. This set of equations contains three unknown parameters (p1,p2, x2).
 #' The parameters x1, mu, and sigma are given by the user.
 #'
-#' @param x1 : first point support
-#' @param mu : mean of the distribution function
-#' @param sigma : second moment of the distribution function
+#' @param x1 First point support
+#' @param mu First moment of the distribution function
+#' @param sigma Second moment of the distribution function
 #'
 #' @return a list containing the vectors p = (p1,p2) and x = (x1, x2)
 #' @export

@@ -1,23 +1,5 @@
-#' Title
-#'
-#' @param d
-#' @param m
-#'
-#' @return
-#'
-#' @examples
-#' d <- c(4,2,1)
-#' m <- 0:3
-#' cleanAndcheckdAndm(d,m)
-#'
-#' d <- c(1/2,2,1)
-#' cleanAndcheckdAndm(d,m)
-#'
-#' d <- 0:3
-#' m <- 1:3
-#' cleanAndcheckdAndm(d,m)
-#'
-#'
+# Clean and check that the parameters m and d
+# are suited to be used in the function buildMomentAndDerivativesFunctions
 cleanAndcheckdAndm <- function(d,m){
 
   if (!is.null(d)){
@@ -36,56 +18,19 @@ cleanAndcheckdAndm <- function(d,m){
   return(output)
 }
 
-#' Title
-#'
-#' @param sample
-#' @param fboot
-#' @param nboot
-#' @param ...
-#'
-#' @return
-#' @export
-#' @importFrom bootstrap bootstrap
-#'
-#' @examples
-#' sample <- rnorm(1e4,0,1)
-#' fboot <-  list(function(x) mean(x), function(x) sd(x))
-#' bootstrapedValues <- getBootstrapedValues(sample,fboot, nboot = 1E4, mc.cores = 4)
-#' head(bootstrapedValues)
-#'
+# Function to obtain the bootstraped values of the functions contained in fboot
 getBootstrapedValues <- function(sample, fboot, nboot = 1E3,mc.cores = 1)
 {
   if (class(fboot) != "list") fboot <- list(fboot)
 
-  FUN <- function(theta) bootstrap(x = sample, nboot, theta = theta)$thetastar
+  FUN <- function(theta) bootstrap::bootstrap(x = sample, nboot, theta = theta)$thetastar
   bootstrapedValues <- parallel::mclapply(X =  fboot, FUN = FUN,mc.cores = mc.cores)
   output <- data.frame(t(plyr::ldply(bootstrapedValues)))
 
   return(output)
 }
 
-#' buildMomentAndDerivativesFunctions
-#'
-#' @param a
-#' @param m
-#' @param d
-#'
-#' @return
-#' @importFrom ks kdde kcde kde
-#' @importFrom sROC kCDF
-#'
-#' @examples
-#' a <- 0
-#' m <- 0:2
-#' d <- 1:3
-#'
-#' # Create the functions to estimate the derivatives and moments
-#' MyFunc <- GLP:::buildMomentAndDerivativesFunctions(a,m,d)
-#'
-#' # Create a sample
-#' sample <- rnorm(1E4, 0, 1 )
-#' Truth <- c((a^2 - 1)*dnorm(a), -a*dnorm(a), dnorm(a), 1- pnorm(a), (2*pi)^(-1/2), 1/2)
-#' data.frame(Truth = Truth , Estimates = sapply(MyFunc, function(f)do.call(f, list(x = sample))))
+# Create the functions to estimate E[X^mI(x => a)] and f^(d)(a)
 buildMomentAndDerivativesFunctions <- function(a, m = NULL, d = NULL, ...){
   # Initialize list of Functions
   nFunc <- length(d) + length(m)
@@ -95,14 +40,14 @@ buildMomentAndDerivativesFunctions <- function(a, m = NULL, d = NULL, ...){
 
   # Build Functions for estimating the derivatives of of 1 <= order <= 3
   for (order in d){
-    if (order == 1) Func[[i]] <- function(x) kde(x = x, eval.points = a)$estimate
-    if (order != 1) Func[[i]] <- eval(substitute(function(x) kdde(x = x, eval.points = a, deriv.order = order-1)$estimate,list(order=order)))
+    if (order == 1) Func[[i]] <- function(x) ks::kde(x = x, eval.points = a)$estimate
+    if (order != 1) Func[[i]] <- eval(substitute(function(x) ks::kdde(x = x, eval.points = a, deriv.order = order-1)$estimate,list(order=order)))
     i <- i + 1
   }
 
   # Build Functions for moments
   for (order in m){
-    if (order ==0) Func[[i]] <- function(x) 1 - kCDF(x = x, xgrid = a)$Fhat
+    if (order ==0) Func[[i]] <- function(x) 1 - sROC::kCDF(x = x, xgrid = a)$Fhat
     if (order !=0) Func[[i]] <- eval(substitute(function(x) mean(x^order*(x >= a), na.rm = TRUE),list(order=order)))
     i <- i + 1
   }
@@ -111,19 +56,33 @@ buildMomentAndDerivativesFunctions <- function(a, m = NULL, d = NULL, ...){
   return(output)
 }
 
-#' Title
+
+#' Build confidence intervals for the quantities E[X^m I(X => a)] and  f^(d)(a)
 #'
-#' @param sample
-#' @param a
-#' @param m
-#' @param d
-#' @param nboot
-#' @param alpha
-#' @param method
-#' @param mc.cores
-#' @param ...
+#' Using bootstrap, this function builds (1-alpha)-confidence intervals for the truncated moments E[X^m I(X => a)]
+#' and derivatives f^(d)(a) for a given sample and threshold \emph{a}. The confidence intervals can be either hyperrectangles,
+#' or ellipsoids.
 #'
-#' @return
+#' @param sample Vector containing the sample values of the random variable X
+#' @param a Vector of values at which the derivatives and moments are estimated
+#' @param m Vector of  real numbers
+#' @param d Vector of positive integers
+#' @param nboot The number of bootstrap samples desired
+#' @param alpha Desired accuracy level for the confidence interval. Default value is 5\%
+#' @param method A string either equal to \emph{hyperrectangle}, \emph{ellipsoid}, or \emph{both}
+#'  defining the type of confidence intervals. Default value is \emph{hyperrectangle}
+#' @param mc.cores Number of cores  used in the computation of the confidence intervals. Default value is 1.
+#'  If \emph{mc.cores > 1}, parallel computing takes place with a total of \emph{mc.cores}
+#' @param bootSample Logical value indicating wether the bootstraped sample should be returned by the function
+#'
+#' @return A list of with the same length as the vector \emph{a} of the argument list. Each cell of the list is also a list which contains
+#' \item{hyperrectangle}{A data.frame containing the lower bounds and upper bounds of the derivatives and truncated moments. Only in
+#'  the case when the argument \emph{method} = \emph{hyperrectangle} or \emph{both}}
+#' \item{ellipsoid}{A list containing the vecor of means, the covariance matrix, and the radius of the ellipsoid describing the confidence interval. Only in
+#' the case  when the argument \emph{method} = \emph{ellipsoid} or \emph{both}}
+#' \item{a}{scalar value giving the threshold \emph{a} for the associated confidence interval}
+#' \item{bootSample}{Matrix containing the bootstrapped samples used to build the confidence intervals.
+#' Each row contains one bootstrap of the original sample}
 #' @export
 #' @importFrom dplyr '%>%'
 #'
@@ -131,7 +90,15 @@ buildMomentAndDerivativesFunctions <- function(a, m = NULL, d = NULL, ...){
 #' a <- c(0,1) ; m <- c(0, 1) ; d <- 1 ; nboot <- 1000
 #' set.seed(100) ; sample <- rnorm(100, 0, 1)
 #' hist(sample)
-#' CI <- getCIMomentAndDerivatives(sample, a,m,d,nboot = nboot,mc.cores = 4, method = "both", bootSample = TRUE)
+#' CI <- getCIMomentAndDerivatives(sample, a,m,d,nboot = nboot,mc.cores = 1, method = "both", bootSample = TRUE)
+#'
+#' library(ggplot2)
+#' i <- 1
+#' title <- paste0("95%-CI of the Estimated Parameters when a = ",a[i])
+#' plot <- plotCI(CI[[i]]$bootSample, CI[[i]])
+#' plot + geom_point(aes(x = dnorm(a[i]), y = 1-pnorm(a[i])), colour = "blue") +
+#' geom_text(aes(x = 1.009*dnorm(a[i]), y = 1-pnorm(a[i]), label = "True Value"), colour = "blue")+
+#' labs(x = "Derivative of order 1", y = "Moment of order 0") + ggtitle(title)
 #'
 #' i <- 2
 #' title <- paste0("95%-CI of the Estimated Parameters when a = ",a[i])
@@ -184,12 +151,14 @@ getCIMomentAndDerivatives = function(sample,a,m = NULL,d=NULL, nboot = 1E3, alph
   return(output)
 }
 
-#' Title
+#' Plot hyperrectangular and ellipsoidal confidence intervals
 #'
-#' @param sample
-#' @param CI
+#' @param sample Vector of sample points
+#' @param CI List containing either \emph{hyperrectangle}{, data.frame containing the lower bounds
+#' and upper bounds of the derivatives and truncated moments.}, or \item{ellipsoid}{, a list containing the vector of means,
+#' the covariance matrix, and the radius of the ellipsoid describing the confidence interval}
 #'
-#' @return
+#' @return an object of class ggplot2
 #' @export
 #' @import ggplot2
 #' @importFrom gtools combinations

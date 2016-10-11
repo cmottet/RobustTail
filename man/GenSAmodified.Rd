@@ -2,7 +2,7 @@
 % Please edit documentation in R/GenSAModified.R
 \name{GenSAmodified}
 \alias{GenSAmodified}
-\title{GenSAmodified}
+\title{Extension of the GenSA function available in the CRAN package of the same name}
 \usage{
 GenSAmodified(par = NULL, fn, lower, upper, control = list(), ...)
 }
@@ -74,7 +74,7 @@ GenSAmodified(par = NULL, fn, lower, upper, control = list(), ...)
 \description{
 This function is an extension of the function GenSA defined in the package GenSA available on CRAN.
 The only difference with the existing version is that \emph{GenSAmodified} allows the user to pass
-values for the lower bounds and upper bounds of \emph{par} that are equal. Though this is a trivial
+lower bounds and upper bounds of the optimization variable that are equal. Though this is a trivial
 scenario in which case the optimal solution should be lower = upper, the current version of GenSA crashes.
 }
 \examples{

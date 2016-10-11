@@ -1,8 +1,7 @@
 #' Function W as defined in Theorem 5, in the case when nubar := 1.
-#'
-#' @param x, w, rho : Scalar values of the parameters of the function W
-#' @param lambda :  a scalar giving the limit value of the ratio H(x)/x^2 when x goes to infinity
-#' @param H : the function H(x) defined in program (5)
+#' @param x,w,rho Scalar value
+#' @param lambda A scalar giving the limit value of the ratio H(x)/x^2 when x goes to infinity
+#' @param H The function H(x) defined in program (5) or (EC.19)
 #' @export
 #' @examples
 #' ###

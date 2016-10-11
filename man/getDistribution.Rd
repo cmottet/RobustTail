@@ -2,23 +2,23 @@
 % Please edit documentation in R/getDistribution.R
 \name{getDistribution}
 \alias{getDistribution}
-\title{getDistribution}
+\title{Returns a 2-point support feasible distribution function for program (5)}
 \usage{
 getDistribution(x1, mu, sigma)
 }
 \arguments{
-\item{x1}{: first point support}
+\item{x1}{First point support}
 
-\item{mu}{: mean of the distribution function}
+\item{mu}{First moment of the distribution function}
 
-\item{sigma}{: second moment of the distribution function}
+\item{sigma}{Second moment of the distribution function}
 }
 \value{
 a list containing the vectors p = (p1,p2) and x = (x1, x2)
 }
 \description{
-Returns a distribution function with two point masses
-and supports (p1, p2, x1,x2) satisfying the three equations p1 + p2 = 1,  p1x1 + p2x2 = mu,
+Returns a 2-point support feasible distribution function for program (5), i.e. a distribution function with
+two point masses (p1,p2) and supports (x1,x2) satisfying the three equations p1 + p2 = 1,  p1x1 + p2x2 = mu,
 and m1x1^2 + p2x2^2 = sigma. This set of equations contains three unknown parameters (p1,p2, x2).
 The parameters x1, mu, and sigma are given by the user.
 }

@@ -6,7 +6,7 @@ Author: Clementine Mottet
 Maintainer: Clementine Mottet <cmottet@bu.edu>
 Description: This package is a companion to the paper by Lam and Mottet
   "Tail Analysis without Parametric Models: A Worst-case Perspective". It is designed to solve
-  programs (1) and (EC.19) by focusing on the respective equivalent optimization programs (5) and (EC.19), when
+  programs (1) and (11) by focusing on the respective equivalent optimization programs (5) and (EC.19), when
   their feasbile region are restricted to  distribution functions with at most two point supports.
 License: MIT
 LazyData: TRUE
@@ -16,9 +16,10 @@ Imports:
   ks,
   sROC,
   bootstrap,
-  dplyr
+  dplyr,
+  ggplot2
 Suggests:
-  ggplot2,
-  gtools
+  gtools,
+  plyr
 
 

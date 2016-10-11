@@ -7,11 +7,11 @@
 W(x, w, rho, lambda, H)
 }
 \arguments{
-\item{x, }{w, rho : Scalar values of the parameters of the function W}
+\item{x, w, rho}{Scalar value}
 
-\item{lambda}{:  a scalar giving the limit value of the ratio H(x)/x^2 when x goes to infinity}
+\item{lambda}{A scalar giving the limit value of the ratio H(x)/x^2 when x goes to infinity}
 
-\item{H}{: the function H(x) defined in program (5)}
+\item{H}{The function H(x) defined in program (5) or (EC.19)}
 }
 \description{
 Function W as defined in Theorem 5, in the case when nubar := 1.
