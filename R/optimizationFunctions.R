@@ -8,7 +8,7 @@ computeBoundVal <- function(H,mu, sigma, lambda, direction = c("max", "min"))
 
   # Exclusion of trivial scenarios
   if (mu^2 > sigma) output <- list(bound = scale*Inf, P = NULL)
-  if (mu^2 == sigma)output <- list(bound = H(mu), P = list(p = 1, x = mu))
+  if (mu^2 == sigma)output <- list(bound = H(mu), P = getDistribution(mu,sigma))
 
   # Treatment of non-trivial scenarios
   if (mu^2 < sigma){
@@ -16,7 +16,7 @@ computeBoundVal <- function(H,mu, sigma, lambda, direction = c("max", "min"))
                       par         = 0,
                       lower       = 0,
                       upper       = mu)
-    output <- list(bound = scale*Z$value, P = getDistribution(x1 = Z$par,mu,sigma))
+    output <- list(bound = scale*Z$value, P = getDistribution(mu,sigma,x1 = Z$par))
   }
 
   return(output)
@@ -33,7 +33,7 @@ computeBoundInt <- function(H,mu, sigma, lambda, direction = c("max", "min"))
   # Exclude trival scenarios
   if ( (mu[1] > mu[2]) || (sigma[1] > sigma[2])) output <- list(bound = scale*Inf, P = NULL)
   if (mu[1]^2 > sigma[2])  output <- list(bound = scale*Inf, P = NULL)
-  if (mu[1]^2 == sigma[2]) output <- list(bound = H(mu), P = list(p = 1, x = mu))
+  if (mu[1]^2 == sigma[2]) output <- list(bound = H(mu), P = getDistribution(mu[1],sigma[2]))
 
   # Non-trivial scenario
   if (mu[1]^2 < sigma[2])
@@ -49,7 +49,7 @@ computeBoundInt <- function(H,mu, sigma, lambda, direction = c("max", "min"))
                           lower       = lower,
                           upper       = upper)
 
-      P1 <- getDistribution(x1 = Z1$par[1],mu = mu[2],sigma = Z1$par[2])
+      P1 <- getDistribution(mu = mu[2],sigma = Z1$par[2],x1 = Z1$par[1])
     }
 
 
@@ -64,7 +64,7 @@ computeBoundInt <- function(H,mu, sigma, lambda, direction = c("max", "min"))
                           par   = lower,
                           lower = lower,
                           upper = upper)
-      P2 <- getDistribution(x1 = Z2$par[1],mu = Z2$par[2], sigma =  sigma[2])
+      P2 <- getDistribution(mu = Z2$par[2], sigma =  sigma[2],x1 = Z2$par[1])
     }
 
     bound <- max(scale*Z1$value,scale*Z2$value)
@@ -195,11 +195,12 @@ computeBoundInt <- function(H,mu, sigma, lambda, direction = c("max", "min"))
 #' output <- data.frame(b = b, bound = bound)
 #' }
 #'
-#' dataPlot <- plyr::ldply(parallel::mclapply(X = b, FUN = runFunc))
+#' dataPlot <- plyr::ldply(lapply(X = b, FUN = runFunc))
 #'
 #' library(ggplot2)
 #' ggplot(dataPlot, aes(x = b, y = bound)) +
 #' geom_line() +
+#' labs(y = "Optimal Upper Bound") +
 #' ylim(c(0,0.3))
 computeBound = function(H, mu, sigma, lambda, nu = 1, direction = c("max", "min"))
 {

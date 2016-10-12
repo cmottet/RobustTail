@@ -74,7 +74,7 @@ GenSAmodified(par = NULL, fn, lower, upper, control = list(), ...)
 \description{
 This function is an extension of the function GenSA defined in the package GenSA available on CRAN.
 The only difference with the existing version is that \emph{GenSAmodified} allows the user to pass
-lower bounds and upper bounds of the optimization variable that are equal. Though this is a trivial
+lower bounds and upper bounds with equal values. Though this is a trivial
 scenario in which case the optimal solution should be lower = upper, the current version of GenSA crashes.
 }
 \examples{

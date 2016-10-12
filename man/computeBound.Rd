@@ -101,7 +101,7 @@ with(output$P, data.frame(lowerMomentBound = c(1, mu[1], sigma[1]), moments = c(
 ####      f(x) is non-negative for all x => a
 ####
 #### where b is some real number larger than a. This problem is of the form of
-#### program (1). By Theorem 4,  to solve that
+#### program (1). By Theorem 4, it is equivalent to solve
 ####
 #### max sum(p H(x))
 #### s.t sum(px) = mu
@@ -130,11 +130,12 @@ bound <- RobustTail::computeBound(H,mu,sigma,lambda,nu)$bound
 output <- data.frame(b = b, bound = bound)
 }
 
-dataPlot <- plyr::ldply(parallel::mclapply(X = b, FUN = runFunc))
+dataPlot <- plyr::ldply(lapply(X = b, FUN = runFunc))
 
 library(ggplot2)
 ggplot(dataPlot, aes(x = b, y = bound)) +
 geom_line() +
+labs(y = "Optimal Upper Bound") +
 ylim(c(0,0.3))
 }
 

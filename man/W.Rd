@@ -7,11 +7,11 @@
 W(x, w, rho, lambda, H)
 }
 \arguments{
-\item{x, w, rho}{Scalar value}
+\item{x, w, rho}{Real numbers}
 
-\item{lambda}{A scalar giving the limit value of the ratio H(x)/x^2 when x goes to infinity}
+\item{lambda}{A real number equal to the limit of the ratio H(x)/x^2 as x goes to infinity}
 
-\item{H}{The function H(x) defined in program (5) or (EC.19)}
+\item{H}{The function H(x) as defined in program (5) and (EC.19)}
 }
 \description{
 Function W as defined in Theorem 5, in the case when nubar := 1.
@@ -32,6 +32,7 @@ a <- qexp(0.7)
 c <- qexp(0.9)
 H <- function(x) (x - max(c - a,0))^2/2*(x >= max(c - a,0))
 
+# Assume the true distribution function is a standard exponential
 eta <- dexp(a)
 nu <- dexp(a)
 beta <- 1-pexp(a)
