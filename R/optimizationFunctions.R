@@ -33,7 +33,7 @@ computeBoundInt <- function(H,mu, sigma, lambda, direction = c("max", "min"))
   # Exclude trival scenarios
   if ( (mu[1] > mu[2]) || (sigma[1] > sigma[2])) output <- list(bound = scale*Inf, P = NULL)
   if (mu[1]^2 > sigma[2])  output <- list(bound = scale*Inf, P = NULL)
-  if (mu[1]^2 == sigma[2]) output <- list(bound = H(mu), P = getDistribution(mu[1],sigma[2]))
+  if (mu[1]^2 == sigma[2]) output <- list(bound = H(mu[1]), P = getDistribution(mu[1],sigma[2]))
 
   # Non-trivial scenario
   if (mu[1]^2 < sigma[2])
